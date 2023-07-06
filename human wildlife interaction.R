@@ -461,7 +461,7 @@ PARKS <- levels(data$park)
 N <- length(PARKS)
 
 #.......................................................
-# Generate the temperature panel (A)
+## Generate the temperature panel (A) ----
 #.......................................................
 
 #Loop over the number of parks
@@ -488,7 +488,7 @@ temp_park_level <- aggregate(estimate ~ avgtemp + park, data = temp_preds, FUN =
 # Average temp effect across all parks
 temp_pop_level <- aggregate(estimate ~ avgtemp, data = temp_preds, FUN = "mean")
 
-##Plot monthly HWI in response to temperature ----
+###Plot monthly HWI in response to temperature ----
 temp <-
   ggplot() +
   geom_point(data = data, 
@@ -526,15 +526,15 @@ temp <-
         legend.position = c(0.15,0.7),
         #legend.box.background = element_rect(color = "black"),
         legend.title = element_text(face = "bold"),
-        #panel.background = element_rect(fill = "transparent"),
-        #plot.background = element_rect(fill = "transparent", color = NA),
+        panel.background = element_rect(fill = "transparent"),
+        plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(t = 0.2, r = 0.0, b = 0.2, l = 0.2), "cm"))
 temp
 ggsave(temp, filename = "figures/temp.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 
 #.......................................................
-# Generate the precipitation panel (B)
+## Generate the precipitation panel (B) ----
 #.......................................................
 
 #Loop over the number of parks
@@ -562,7 +562,7 @@ precip_park_level <- aggregate(estimate ~ avgprecip + park, data = precip_preds,
 # Average precip effect across all parks
 precip_pop_level <- aggregate(estimate ~ avgprecip, data = precip_preds, FUN = "mean")
 
-## Plot monthly interactions in response to precipitation ----
+### Plot monthly interactions in response to precipitation ----
 precip <-
   ggplot() +
   geom_point(data = data, 
@@ -594,8 +594,7 @@ precip <-
         plot.title = element_text(hjust = 0.02, vjust = -10, size = 20, 
                                   family = "sans", face = "bold"),
         legend.position="none",
-        legend.key = element_rect(color = NA),
-        #legend.box = "none",
+        #legend.key = element_rect(color = NA),
         #legend.box.background = element_rect(color = "black"),
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
