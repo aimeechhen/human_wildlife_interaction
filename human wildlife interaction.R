@@ -1,6 +1,9 @@
 # Human-wildlife interactions
 
+#............................................................
 # Load packages ----
+#............................................................
+
 #data, visualization
 library(readr)
 library(lubridate)       #date formats
@@ -19,11 +22,13 @@ library(MuMIn)           #AICc()
 #remotes::install_github('burnett-m/climatenaR', build_vignettes = FALSE)
 library(climatenaR)
 
-# Data Preparation ----
+#............................................................
+# National Parks Data ----
+#............................................................
+
 # Set working directory
 setwd("C:/Users/achhen/OneDrive - UBC/Github/human wildlife interaction")
 
-## Parks Canada Agency (PCA) data ----
 # Download Parks Canada Agency dataset
 #source: https://open.canada.ca/data/en/dataset/cc5ea139-c628-46dc-ac55-a5b3351b7fdf/resource/b2a9f7e4-7c49-471d-8337-0192c15dd52a?inner_span=True
 
@@ -65,7 +70,10 @@ data$month <- lubridate::month(data$year_month)
 data <- relocate(data, HWI, .before = year_month)
 data <- relocate(data, park, .after = month)
 
+#............................................................
 ## Historical climate data ----
+#............................................................
+
 #import coordinates obtained from Google maps of the national parks
 #refer to 'elevation and climate.R' for script
 nationalparks_bc_coordinates <- read_csv("data/ClimateNA_v731/nationalparks_bc_coordinates.csv")
@@ -78,67 +86,80 @@ data <- left_join(data, nationalparks_bc_coordinates, by = 'park')
 historical_climate_data <- readRDS("data/ClimateNA_v731/climate data/historical_climate_data.rds")
 data <- left_join(data, historical_climate_data, by = c("latitude","longitude", "year", "month"))
 
-#saveRDS(data, file = "RDS/data.rds")
-
 #number of total interactions
 sum(data$HWI)
 #number of months with recorded interactions
 totalmonthlyHWI <- aggregate(HWI ~ year_month, data = BC, FUN = "length")
 
+#............................................................
 # Model ----
+#............................................................
+
 data$park <- as.factor(data$park)
 data$year_month <- as.Date(data$year_month, format = "%Y-%m-%d")
 
+#............................................................
+## Model distribution specification ----
+#............................................................
 
-## Distribution Specification ----
-### Poisson distribution ----
+#Poisson distribution
 model <- gam(HWI ~
-                       s(park, bs = 'fs') +
-                       s(month, park, bs = 'fs', xt = list(bs = 'cc'), k = 5) +        #random intercept & slope effect of park level trend
-                       s(avgtemp, park, bs = 'fs', k = 5) +                           #global effect of temperature, specify k explicitly (even if it is the default)
-                       s(log(avgprecip + 1e-10), park, bs = 'fs', k = 5) +            #global effect of precipitation, add a tiny number to avgprecip so we don't take log of 0
-                       ti(avgtemp, log(avgprecip + 1e-10), park, bs = c('tp', 'tp', 'fs'), k = 5) + #response to snow
-                       ti(month, avgtemp, k = 5, bs = c('cc', 'tp')) +                 #what is hot in january is cold in july
-                       ti(month, log(avgprecip + 1e-10), bs = c('cc', 'tp'), k = 5),
-                     family = poisson(link = "log"),                                   #indicate distribution family, poisson because count data
-                     data = data,
-                     method = "REML",
-                     control = gam.control(nthreads = 8, trace = TRUE),
-                     knots = list(month = c(0.5, 12.5)))
-saveRDS(model, file = "RDS/model.RDS")
+               s(park, bs = 'fs') +
+               s(month, park, bs = 'fs', xt = list(bs = 'cc'), k = 5) +        #random intercept & slope effect of park level trend
+               s(avgtemp, park, bs = 'fs', k = 5) +                           #global effect of temperature, specify k explicitly (even if it is the default)
+               s(log(avgprecip + 1e-10), park, bs = 'fs', k = 5) +            #global effect of precipitation, add a tiny number to avgprecip so we don't take log of 0
+               ti(avgtemp, log(avgprecip + 1e-10), park, bs = c('tp', 'tp', 'fs'), k = 5) + #response to snow
+               ti(month, avgtemp, k = 5, bs = c('cc', 'tp')) +                 #what is hot in january is cold in july
+               ti(month, log(avgprecip + 1e-10), bs = c('cc', 'tp'), k = 5),
+             family = poisson(link = "log"),                                   #indicate distribution family, poisson because count data
+             data = data,
+             method = "REML",
+             control = gam.control(nthreads = 8, trace = TRUE),
+             knots = list(month = c(0.5, 12.5)))
+
+#saveRDS(model, file = "RDS/model.RDS")
+
 summary(model) #deviance 65.8%
 par(mfrow = c(3,2))
 plot(model)
 par(mfrow = c(1,1))
 
-### Negative binomial distribution ----
+# Negative binomial distribution
 model2 <- gam(HWI ~
-                  s(park, bs = 're') +
-                  s(month, park, bs = 'fs', xt = list(bs = 'cc'), k = 5) +        #random intercept & slope effect of park level trend
-                  s(avgtemp, park, bs = 'fs', k = 10) +                           #global effect of temperature, specify k explicitly (even if it is the default)
-                  s(log(avgprecip + 1e-10), park, bs = 'fs', k = 10) +            #global effect of precipitation, add a tiny number to avgprecip so we don't take log of 0
-                  ti(avgtemp, log(avgprecip + 1e-10), park, bs = c('tp', 'tp', 're'), k = 5) + #response to snow
-                  ti(month, avgtemp, k = 5, bs = c('cc', 'tp')) +                 #what is hot in january is cold in july
-                  ti(month, log(avgprecip + 1e-10), bs = c('cc', 'tp'), k = 5),
-                family = nb(link = "log"),                                    #indicate distribution family, negative binomial because count data
-                data = data,
-                method = "REML",
-                control = gam.control(nthreads = 8, trace = TRUE))
-saveRDS(model2, file = "RDS/model2.RDS")
-summary(model2) #deviance 62.2%
+                s(park, bs = 're') +
+                s(month, park, bs = 'fs', xt = list(bs = 'cc'), k = 5) +        #random intercept & slope effect of park level trend
+                s(avgtemp, park, bs = 'fs', k = 10) +                           #global effect of temperature, specify k explicitly (even if it is the default)
+                s(log(avgprecip + 1e-10), park, bs = 'fs', k = 10) +            #global effect of precipitation, add a tiny number to avgprecip so we don't take log of 0
+                ti(avgtemp, log(avgprecip + 1e-10), park, bs = c('tp', 'tp', 're'), k = 5) + #response to snow
+                ti(month, avgtemp, k = 5, bs = c('cc', 'tp')) +                 #what is hot in january is cold in july
+                ti(month, log(avgprecip + 1e-10), bs = c('cc', 'tp'), k = 5),
+              family = nb(link = "log"),                                    #indicate distribution family, negative binomial because count data
+              data = data,
+              method = "REML",
+              control = gam.control(nthreads = 8, trace = TRUE))
 
-### Comparing distributions ----
+#saveRDS(model2, file = "RDS/model2.RDS")
+
+summary(model2) #deviance 62.2%
+par(mfrow = c(3,2))
+plot(model2)
+par(mfrow = c(1,1))
+
+#............................................................
+## Model diagnostics ----
+#............................................................
+
+#comparing distributions
 AICc(model, model2)
 #Based on AICc model selection, a poisson distribution was a better fit
 
-#### Model diagnostics ----
 #diagnostics for a fitted gam model
 par(mfrow = c(2,2))
 gam.check(model)
 gam.check(model2)
 par(mfrow = c(1,1))
 
-#### Dispersion check ----
+#dispersion check
 #install.packages("countreg", repos="http://R-Forge.R-project.org")
 library(countreg)
 #https://stackoverflow.com/questions/59342595/how-to-check-for-overdispersion-in-a-gam-with-negative-binomial-distribution
@@ -155,12 +176,14 @@ autoplot(root_nb)
 sum(residuals(model, type = "pearson")^2) / df.residual(model) #above 1 = overdispersion
 sum(residuals(model2, type = "pearson")^2) / df.residual(model2) #above 1 = overdispersion
 
-## Autocorrelation ----
 #tests for temporal autocorrelation in the residuals
-poisson_acf <- acf(residuals(model, type = "deviance"))
-nb_acf <- acf(residuals(model2, type = "deviance"))
+model_acf <- acf(residuals(model, type = "deviance"))
+model2_acf <- acf(residuals(model2, type = "deviance"))
 
-# Model fit ----
+#............................................................
+# Model Fit ----
+#............................................................
+
 #model validation via historical prediction from the model to check to see if the model is 
 #behaving appropriately based on the observed data by visually comparing predicted values 
 #and the historical values for each park
@@ -235,7 +258,12 @@ newdata_revelstoke$predict <- predict(model, newdata = newdata_revelstoke, type 
 newdata_pacific_rim$predict <- predict(model, newdata = newdata_pacific_rim, type = "response")
 newdata_yoho$predict <- predict(model, newdata = newdata_yoho, type = "response")
 
-##Plot to visually compare historical recordings vs. model-predicted interactions to make sure model is behaving ----
+#............................................................
+## Visual comparison ----
+#............................................................
+
+#Plot to visually compare historical recordings vs. model-predicted interactions to make sure model is behaving
+
 #Glacier
 ggplot() +
   geom_boxplot(data = newdata_glacier, aes(x = month, y = HWI, group = cut_width(month, 1))) +
@@ -351,7 +379,15 @@ ggplot() +
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
 ggsave(plot = last_plot(), filename = "figures/fitcheck_yoho.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
-# Projecting HWI under climate change ----
+#............................................................
+# HWI Projections ----
+#............................................................
+
+#Projecting HWI under climate change
+
+#............................................................
+## Projected climate data ----
+#............................................................
 
 #import clean projected climate data
 #refer to "projected climate data" section within the 'elevation and climate.R' script
@@ -360,6 +396,10 @@ projection_climate_data <- merge(projection_climate_data, nationalparks_bc_coord
                                  by = c("latitude","longitude"), all.x=TRUE)
 names(projection_climate_data)[7] <- "avgtemp"
 names(projection_climate_data)[6] <- "dec_year_month"
+
+#............................................................
+## HWI projections under 4 SSP climate scenarios ----
+#............................................................
 
 #Project the number of interactions under 4 SSP climate scenarios
 projection_climate_data$predicted_interactions <- predict(model, newdata = projection_climate_data, type = "response")
@@ -390,7 +430,10 @@ agg_proj[which(agg_proj$park == "Yoho National Park of Canada"),"predicted_inter
 agg_proj[which(agg_proj$park == "Mount Revelstoke National Park of Canada"),"predicted_interactions"] <- 
   agg_proj[which(agg_proj$park == "Mount Revelstoke National Park of Canada"),"predicted_interactions"]/data2[which(data2$park == "Mount Revelstoke National Park of Canada"),"predicted_interactions"]
 
-# Visualization ----
+#............................................................
+# Figures ----
+#............................................................
+
 colour_park <- c("#66CCEE", "#EE7733", "#228833", "#004488", "#AA4499")
 #Glacier = light blue -> #66CCEE
 #Kootenay = orange -> #EE7733
@@ -398,7 +441,10 @@ colour_park <- c("#66CCEE", "#EE7733", "#228833", "#004488", "#AA4499")
 #Pacific Rim = blue -> #004488
 #Yoho = purple -> #AA4499
 
-## Plot historical number of HWI recordings over time ----
+#............................................................
+## Historical number of HWI recordings over time ----
+#............................................................
+
 ggplot() +
   geom_point(data = data, aes(x = year_month, y = HWI)) +
   xlab("Time") +
@@ -416,9 +462,12 @@ ggplot() +
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
-ggsave(last_plot(), filename = "figures/HWI.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(last_plot(), filename = "figures/historical_HWI.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
+#............................................................
 ## Plot historical seasonal trends of human-wildlife interactions ----
+#............................................................
+
 ggplot() +
   geom_jitter(data = data, 
               aes(y = HWI, x = month, col = park),
@@ -452,17 +501,21 @@ ggplot() +
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(0,0.2,0,0.2), "cm"))
-ggsave(filename = "figures/seasonal_HWI.png", plot = last_plot(), device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(filename = "figures/historical_HWI_seasonal.png", plot = last_plot(), device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
-# Final Results figures ----
+#.......................................................
+# Final Results Figure 5 ----
+#.......................................................
 
 #Number of parks to loop over
 PARKS <- levels(data$park)
 N <- length(PARKS)
 
-#.......................................................
-## Generate the temperature panel (A) ----
-#.......................................................
+#............................................................
+## Temperature: Figure 5a ----
+#............................................................
+
+# Projected monthly HWI in response to temperature
 
 #Loop over the number of parks
 for(i in 1:N){
@@ -488,8 +541,7 @@ temp_park_level <- aggregate(estimate ~ avgtemp + park, data = temp_preds, FUN =
 # Average temp effect across all parks
 temp_pop_level <- aggregate(estimate ~ avgtemp, data = temp_preds, FUN = "mean")
 
-###Plot monthly HWI in response to temperature ----
-temp <-
+projected_HWI_temp <-
   ggplot() +
   geom_point(data = data, 
              aes(y = HWI, x = avgtemp, col = park),
@@ -526,16 +578,18 @@ temp <-
         legend.position = c(0.15,0.7),
         #legend.box.background = element_rect(color = "black"),
         legend.title = element_text(face = "bold"),
+        legend.background=element_blank(),
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(t = 0.2, r = 0.0, b = 0.2, l = 0.2), "cm"))
-temp
-ggsave(temp, filename = "figures/temp.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
-
+projected_HWI_temp
+ggsave(projected_HWI_temp, filename = "figures/projected_HWI_temp.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #.......................................................
-## Generate the precipitation panel (B) ----
+## Precipitation: Figure 5b ----
 #.......................................................
+
+# Projected monthly HWI in response to precipitation
 
 #Loop over the number of parks
 for(i in 1:N){
@@ -545,8 +599,8 @@ for(i in 1:N){
                            datagrid(park = levels(data$park)[i],
                                     month = 1:12,
                                     avgprecip = seq(min(data$avgprecip),
-                                                  max(data$avgprecip),
-                                                  by = 0.1))))
+                                                    max(data$avgprecip),
+                                                    by = 0.1))))
   
   #Bind the results
   if(i == 1){precip_preds <- preds}
@@ -562,8 +616,7 @@ precip_park_level <- aggregate(estimate ~ avgprecip + park, data = precip_preds,
 # Average precip effect across all parks
 precip_pop_level <- aggregate(estimate ~ avgprecip, data = precip_preds, FUN = "mean")
 
-### Plot monthly interactions in response to precipitation ----
-precip <-
+projected_HWI_precip <-
   ggplot() +
   geom_point(data = data, 
              aes(y = HWI, x = avgprecip, col = park),
@@ -599,15 +652,16 @@ precip <-
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(t = 0.2, r = 0.1, b = 0.2, l = 0.7), "cm"))
-precip
+projected_HWI_precip
 
-ggsave(precip, filename = "figures/precip.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(projected_HWI_precip, filename = "figures/projected_HWI_precip.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
-TOP <- grid.arrange(temp, precip, 
-                    ncol=2)
+#.......................................................
+## Predicted HWI: Figure 5c-f  ----
+#.......................................................
 
-## Plot predicted HWIs under climate change scenarios ----
-library(ggh4x)        # to fill in facet wrap title boxes
+# Predicted HWIs under climate change scenarios
+
 #Make colour strips in x-direction for panel title boxes (they will correspond to SSPs)
 strip <- strip_themed(background_x = 
                         elem_list_rect(fill = c("#4EBAF9", "#C0DEED", "#FFC1B5", "#FF7B7B")))
@@ -619,7 +673,7 @@ data_text <- data.frame(label = c("C", "D", "E", "F"),
                         y = c(3.5, 3.5, 3.5, 3.5))
 
 BOT <- 
-ggplot(agg_proj, aes(x = year , y = predicted_interactions)) + 
+  ggplot(agg_proj, aes(x = year , y = predicted_interactions)) + 
   geom_hline(yintercept = 1, linewidth = 0.5, color = "grey70") + # line at 1 for reference
   geom_line(linewidth=0.5, aes(group = park, col = park), alpha = 0.8) + # line for each park
   facet_wrap2(~ scenario, strip = strip, labeller = as_labeller(c(
@@ -663,10 +717,18 @@ ggplot(agg_proj, aes(x = year , y = predicted_interactions)) +
         legend.box.background = element_rect(color = "black"),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
 BOT 
+ggsave(BOT, filename = "figures/BOT.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 3, units = "in", dpi = 600)
 
-FIG <- grid.arrange(TOP, BOT, 
+#..................................................
+## Multi-panel ----
+#..................................................
+
+TOP <- grid.arrange(projected_HWI_temp, projected_HWI_precip, 
+                    ncol=2)
+
+FIG5 <- grid.arrange(TOP, BOT, 
                     ncol=1, heights = c(1,0.7))
 
-ggsave(FIG, filename = "figures/figure5.png", device = NULL, path = NULL, scale = 1, width = 14.91, height = 10.47, units = "in", dpi = 600)
+ggsave(FIG5, filename = "figures/figure5.png", device = NULL, path = NULL, scale = 1, width = 14.91, height = 10.47, units = "in", dpi = 600)
 
 
