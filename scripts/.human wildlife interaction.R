@@ -98,6 +98,8 @@ totalmonthlyHWI <- aggregate(HWI ~ year_month, data = BC, FUN = "length")
 data$park <- as.factor(data$park)
 data$year_month <- as.Date(data$year_month, format = "%Y-%m-%d")
 
+model <- readRDS("RDS/model.RDS")
+
 #............................................................
 ## Model distribution specification ----
 #............................................................
@@ -442,13 +444,70 @@ colour_park <- c("#66CCEE", "#EE7733", "#228833", "#004488", "#AA4499")
 #Yoho = purple -> #AA4499
 
 #............................................................
+## National parks map  ----
+#............................................................
+
+library(canadianmaps)    #to download a shapefile of BC
+library(sf)              #for spatial data
+library(sp)              #for spatial data, SpatialPoints()
+
+#import a shapefile of British Columbia
+bc_shape <- 
+  st_as_sf(PROV) %>%  # convert to spatial features (sf) object
+  filter(PRENAME == 'British Columbia') %>% # filter to BC only
+  st_geometry() # extract boundaries only
+
+#import coordinates obtained from Google maps of the national parks
+nationalparks_bc_coordinates <- read_csv("data/ClimateNA_v731/nationalparks_bc_coordinates.csv")
+
+#convert all telemetry dataset to spatial data points
+nationalparks_location <- SpatialPoints(select(nationalparks_bc_coordinates, longitude, latitude))
+
+#do not load the the ctmm package for this or you will run into errors
+ctmm::projection(nationalparks_location) <- '+proj=longlat' 
+
+#check locations
+plot(bc_shape)
+sp::plot(nationalparks_location, add = TRUE, col = 'red', pch = 19, cex = 0.5) 
+#need sp:: in front of plot because function will try to use plot() from another package
+
+map <-
+ggplot() +
+  geom_sf(data = bc_shape) +
+  geom_point(data = data, aes(longitude, latitude, col = park),
+             size = 3, shape = 17, alpha = 0.6) +
+  guides(col = guide_legend(override.aes = list(alpha=1))) +
+  scale_color_manual(name = "National Parks", values = colour_park,
+                     labels = c("Glacier",
+                                "Kootenay",
+                                "Revelstoke",
+                                "Pacific Rim",
+                                "Yoho")) + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = c(0.15, 0.2), #horizontal, vertical
+        legend.background=element_blank(),
+        plot.margin = unit(c(-1,0,-1,0), "cm"),
+        panel.background = element_rect(fill = "transparent"),
+        plot.background = element_rect(fill = "transparent", color = NA),) +
+  coord_sf() # ensures points don't get jittered around when figure dimensions change
+map
+ggsave(map, filename = "figures/map.png", device = NULL, path = NULL, scale = 1, width = 6, height = 6, units = "in", dpi = 600)
+
+#............................................................
 ## Historical number of HWI recordings over time ----
 #............................................................
 
 ggplot() +
-  geom_point(data = data, aes(x = year_month, y = HWI)) +
+  geom_point(data = data, aes(x = year_month, y = HWI, col = park)) +
   xlab("Time") +
   ylab("Human-wildlife interactions") +
+  scale_color_manual(name = "National Parks", values = colour_park,
+                     labels = c("Glacier",
+                                "Kootenay",
+                                "Revelstoke",
+                                "Pacific Rim",
+                                "Yoho")) +
   theme_bw() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -458,7 +517,10 @@ ggplot() +
         axis.text.x  = element_text(size=8, family = "sans"),
         plot.title = element_text(hjust = 0.04, vjust = -7, size = 16, 
                                   family = "sans", face = "bold"),
-        legend.position = "none",
+        legend.position = c(0.15,0.8), #horizontal, vertical
+        #legend.box.background = element_rect(color = "black"),
+        legend.title = element_text(face = "bold"),
+        legend.background = element_blank(),
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
@@ -711,10 +773,10 @@ BOT <-
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         legend.position="none",
-        legend.key.size = unit(0.4, 'cm'),
-        legend.title = element_text(size = 8, face = "bold"),
-        legend.text=element_text(size=7),
-        legend.box.background = element_rect(color = "black"),
+        # legend.key.size = unit(0.4, 'cm'),
+        # legend.title = element_text(size = 8, face = "bold"),
+        # legend.text=element_text(size=7),
+        # legend.box.background = element_rect(color = "black"),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
 BOT 
 ggsave(BOT, filename = "figures/BOT.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 3, units = "in", dpi = 600)
@@ -727,7 +789,7 @@ TOP <- grid.arrange(projected_HWI_temp, projected_HWI_precip,
                     ncol=2)
 
 FIG5 <- grid.arrange(TOP, BOT, 
-                    ncol=1, heights = c(1,0.7))
+                     ncol=1, heights = c(1,0.7))
 
 ggsave(FIG5, filename = "figures/figure5.png", device = NULL, path = NULL, scale = 1, width = 14.91, height = 10.47, units = "in", dpi = 600)
 
