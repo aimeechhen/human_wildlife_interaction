@@ -495,7 +495,7 @@ map
 ggsave(map, filename = "figures/map.png", device = NULL, path = NULL, scale = 1, width = 6, height = 6, units = "in", dpi = 600)
 
 #............................................................
-## Historical HWI recordings over time ----
+## Historical number of HWI recordings over time ----
 #............................................................
 
 ggplot() +
@@ -527,7 +527,7 @@ ggplot() +
 ggsave(last_plot(), filename = "figures/historical_HWI.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #............................................................
-## Historical seasonal trends of human-wildlife interactions ----
+## Plot historical seasonal trends of human-wildlife interactions ----
 #............................................................
 
 ggplot() +

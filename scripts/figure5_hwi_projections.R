@@ -40,7 +40,7 @@ temp_park_level <- aggregate(estimate ~ avgtemp + park, data = temp_preds, FUN =
 # Average temp effect across all parks
 temp_pop_level <- aggregate(estimate ~ avgtemp, data = temp_preds, FUN = "mean")
 
-temp <-
+projected_HWI_temp <-
   ggplot() +
   geom_point(data = data, 
              aes(y = HWI, x = avgtemp, col = park),
@@ -81,8 +81,8 @@ temp <-
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(t = 0.2, r = 0.0, b = 0.2, l = 0.2), "cm"))
-temp
-ggsave(temp, filename = "figures/temp.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+projected_HWI_temp
+ggsave(projected_HWI_temp, filename = "figures/projected_HWI_temp.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #.......................................................
 ## Precipitation: Figure 5b ----
@@ -115,7 +115,7 @@ precip_park_level <- aggregate(estimate ~ avgprecip + park, data = precip_preds,
 # Average precip effect across all parks
 precip_pop_level <- aggregate(estimate ~ avgprecip, data = precip_preds, FUN = "mean")
 
-precip <-
+projected_HWI_precip <-
   ggplot() +
   geom_point(data = data, 
              aes(y = HWI, x = avgprecip, col = park),
@@ -151,9 +151,9 @@ precip <-
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(t = 0.2, r = 0.1, b = 0.2, l = 0.7), "cm"))
-precip
+projected_HWI_precip
 
-ggsave(precip, filename = "figures/precip.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(projected_HWI_precip, filename = "figures/projected_HWI_precip.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #.......................................................
 ## Predicted HWI: Figure 5c-f  ----
