@@ -27,6 +27,10 @@ plot(bc_shape)
 sp::plot(nationalparks_location, add = TRUE, col = 'red', pch = 19, cex = 0.5) 
 #need sp:: in front of plot because function will try to use plot() from another package
 
+#assign colours to each park, label in this order when plotting for the colours to correspond with the parks correctly
+#Glacier: light blue; Kootenay: orange; Revelstoke: green; Pacific Rim: dark blue; Yoho: purple
+colour_park <- c("#66CCEE", "#EE7733", "#228833", "#004488", "#AA4499")
+
 map <-
   ggplot() +
   geom_sf(data = bc_shape) +
