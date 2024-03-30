@@ -1,4 +1,4 @@
-# human-wildlife-animal-interaction
+# human_wildlife_interaction
 
 Working repo, official repo is located within the Quantitative Ecology Lab's GitHub (https://github.com/QuantitativeEcologyLab/BCParks_Attendance)
 
