@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+data/ClimateNA_v731
+data/model.rds
+data/model2.rds
+data/additional PCA datasets
+
+
+scripts/.working script.R
+scripts/other scripts
+
