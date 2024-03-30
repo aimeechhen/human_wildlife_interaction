@@ -1,7 +1,8 @@
 ---
-title: "HWI paper"
+title: "Appendix: Human-wildlife Interactions"
+author: "Dayna K Weststrate, Aimee Chhen, Stefano Mezzini, Michael J Noonan"
 output: html_document
-date: "2023-05-08"
+date: "This document was created on May 8, 2023. It was last modified on `r format(Sys.Date(), '%B %d, %Y')`."
 ---
 
 ```{r setup, include=FALSE}
@@ -39,18 +40,16 @@ library(climatenaR)
 
 
 ```{r include = FALSE}
-# Set working directory
-setwd("C:/Users/achhen/OneDrive - UBC/Github/human wildlife interaction")
 #import coordinates obtained from Google maps of the national parks
 #refer to 'elevation and climate.R' for script
-nationalparks_bc_coordinates <- read_csv("data/ClimateNA_v731/nationalparks_bc_coordinates.csv")
+nationalparks_bc_coordinates <- read_csv("Data/HWI/nationalparks_bc_coordinates.csv")
 #import elevation data
-nationalparks_bc_dem <- read.csv('data/ClimateNA_v731/nationalparks_bc_dem.csv')
+#nationalparks_bc_dem <- read.csv('data/ClimateNA_v731/nationalparks_bc_dem.csv')
 # Import cleaned historical climate data
 #refer to "Historical climate data" section in 'elevation and climate.R' for script
-historical_climate_data <- readRDS("data/ClimateNA_v731/climate data/historical_climate_data.rds")
+historical_climate_data <- readRDS("Data/HWI/ClimateNA_v731/climate data/historical_climate_data.rds")
 # Import model
-model <- readRDS("RDS/HWI_model.rds")
+model <- readRDS("Data/HWI/model.rds")
 ```
 
 
@@ -66,7 +65,7 @@ There is a total of 9 Incident Types assigned in the dataset. Our project is int
 ```{r}
 # Import Parks Canada dataset
 #data obtained on Feb. 3, 2023
-PCA <- read_csv("data/pca-human-wildlife-coexistence-animals-involved-detailed-records-2010-2021.csv")
+PCA <- read_csv("Data/HWI/pca-human-wildlife-coexistence-animals-involved-detailed-records-2010-2021.csv")
 
 #data carpentry
 BC <- PCA[which(PCA$`Protected Heritage Area` %in% c("Glacier National Park of Canada",
@@ -101,7 +100,7 @@ BC$year_month <- as.yearmon(paste(BC$year, BC$month), "%Y %m")
 
 # Create a new dataframe for analysis
 #subset the dataset for HWIs grouped monthly to correspond with the climate data 
-data <- aggregate(HWI ~ year_month + park + species, data = BC, FUN = "length")
+data <- aggregate(HWI ~ year_month + park, data = BC, FUN = "length")
 data$year_month <- as.Date(data$year_month, format = "%Y-%m")
 data <- relocate(data, HWI, .before = year_month)
 ```
@@ -119,7 +118,7 @@ bc_shape <- st_as_sf(PROV) %>%  # convert to spatial features (sf) object
   st_geometry() # extract boundaries only
 
 #import coordinates obtained from Google maps of the national parks
-nationalparks_bc_coordinates <- read_csv("data/ClimateNA_v731/nationalparks_bc_coordinates.csv")
+nationalparks_bc_coordinates <- read_csv("Data/HWI/ClimateNA_v731/nationalparks_bc_coordinates.csv")
 
 #convert all telemetry dataset to spatial data points
 nationalparks_location <- SpatialPoints(select(nationalparks_bc_coordinates, longitude, latitude))
@@ -145,7 +144,7 @@ dem <- get_elev_raster(locations = nationalparks_location,
                        expand = 0.1)
 
 plot(dem)
-plot(nationalparks_location, add = TRUE, col = 'red', pch = 19, cex = 0.5)
+plot(nationalparks_location, add = TRUE, col = 'red', pch = 17, cex = 1.75)
 
 # write the csv
 #(circumventing climatenaR's functions because we only need a specific number of locations)
@@ -155,10 +154,10 @@ nationalparks_bc_coordinates <- mutate(nationalparks_bc_coordinates,
                                        ID2 = ID1) %>%
   relocate(ID1:ID2)
 #save elevation file into 'ClimateNA_v731' folder for downloading climate data (next step)
-write.csv(nationalparks_bc_coordinates, file = 'data/ClimateNA_v731/nationalparks_bc_dem.csv', row.names = FALSE) 
+write.csv(nationalparks_bc_coordinates, file = 'Data/HWI/ClimateNA_v731/nationalparks_bc_dem.csv', row.names = FALSE) 
 
 #check the csv
-nationalparks_bc_dem <- read.csv('data/ClimateNA_v731/nationalparks_bc_dem.csv') %>%
+nationalparks_bc_dem <- read.csv('Data/HWI/ClimateNA_v731/nationalparks_bc_dem.csv') %>%
   head()
 ```
 
@@ -177,11 +176,11 @@ ggplot(nationalparks_bc_dem, aes(latitude, longitude, el)) +
 for(y in 2010:2021) {
   cat('Downloading ', y, '...\n', sep = '') # to track progress
   histClimateNA(
-    file = '/data/ClimateNA_v731/nationalparks_bc_dem.csv', #elevation file, error, remove "park" column in the csv to fix
+    file = '/Data/HWI/ClimateNA_v731/nationalparks_bc_dem.csv', #elevation file, error, remove "park" column in the csv to fix
     dateR = as.character(y),
     tFrame = 'M', # monthly averages
-    exe = '/data/ClimateNA_v731/ClimateNA_v7.31.exe',
-    outdir = '/data/ClimateNA_v731/climate data/historical climate data') #create a output file where the data will be saved to within the 'ClimateNA_v731' folder
+    exe = '/Data/HWI/ClimateNA_v731/ClimateNA_v7.31.exe',
+    outdir = '/Data/HWI/ClimateNA_v731/climate data/historical climate data') #create a output file where the data will be saved to within the 'ClimateNA_v731' folder
 }
 ```
 
@@ -191,7 +190,7 @@ for(y in 2010:2021) {
 historical_climate_data <-
   # list all files, and import each of the CSVs
   map_dfr(
-    list.files('data/ClimateNA_v731/climate data/historical climate data', full.names = TRUE), #folder where the downloaded CSV of historical data is located
+    list.files('Data/HWI/ClimateNA_v731/climate data/historical climate data', full.names = TRUE), #folder where the downloaded CSV of historical data is located
     \(.fname) {
       readr::read_csv(.fname, col_types = '?') %>%
         # add a column of the file name
@@ -233,7 +232,7 @@ historical_climate_data <-
          longitude = Longitude,
          elevation = Elevation) %>%
   relocate(c(month, dec_date), .after = year)
-saveRDS(historical_climate_data, file = "data/ClimateNA_v731/climate data/historical_climate_data.rds")
+saveRDS(historical_climate_data, file = "Data/HWI/ClimateNA_v731/climate data/historical_climate_data.rds")
 ```
 
 
@@ -295,7 +294,7 @@ ggplot() +
 
 ```{r include = FALSE}
 data$park <- as.factor(data$park)
-data$species <- as.factor(data$species)
+#data$species <- as.factor(data$species)
 data$year_month <- as.Date(data$year_month, format = "%Y-%m-%d")
 ```
 
@@ -511,7 +510,7 @@ ggplot() +
 
 ```{r}
 # Plot monthly interactions in response to temperature
-temp <- 
+temp_HWI <- 
   ggplot(data = data, 
          aes(y = HWI, x = avgtemp)) +
     geom_point(aes(col = park), alpha = 0.1, pch = 16) +
@@ -558,7 +557,7 @@ temp <-
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
 
 # Plot monthly interactions in response to precipitation
-precip <- 
+precip_HWI <- 
   ggplot(data = data, 
          aes(y = HWI, x = avgprecip)) +
     geom_point(aes(col = park), alpha = 0.1, pch = 16) +
@@ -601,7 +600,7 @@ precip <-
           plot.background = element_rect(fill = "transparent", color = NA),
           plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
 
-TOP <- grid.arrange(temp, precip, 
+TOP <- grid.arrange(temp_HWI, precip_HWI, 
                      ncol=2)
 ```
 
@@ -610,7 +609,7 @@ TOP <- grid.arrange(temp, precip,
 ```{r}
 # Import clean projected climate data
 #refer to "projected climate data" section within the 'elevation and climate.R' script
-projection_climate_data <- readRDS("data/ClimateNA_v731/climate data/projection_climate_data_monthly.rds")
+projection_climate_data <- readRDS("Data/HWI/ClimateNA_v731/climate data/projection_climate_data_monthly.rds")
 projection_climate_data <- merge(projection_climate_data, nationalparks_bc_coordinates,
                                  by = c("latitude","longitude"), all.x=TRUE)
 names(projection_climate_data)[7] <- "avgtemp"
@@ -668,10 +667,10 @@ ggplot(agg_proj, aes(x = year , y = predicted_interactions)) +
   geom_hline(yintercept = 1, size = 0.5, color = "grey70") + # line at 1 for reference
   geom_line(linewidth=0.5, aes(group = park, col = park), alpha = 0.8) + # line for each park
   facet_wrap2(~ scenario, strip = strip, labeller = as_labeller(c(
-    `low_ssp126` = "SSP 1-2.6",
-    `intermediate_ssp245` = "SSP 2-4.5",
-    `high_ssp370` = "SSP 3-7.0",
-    `veryhigh_ssp585` = "SSP 5-8.5")),
+    `ssp126_low` = "SSP 1-2.6",
+    `ssp245_intermediate` = "SSP 2-4.5",
+    `ssp370_high` = "SSP 3-7.0",
+    `ssp585_veryhigh` = "SSP 5-8.5")),
     nrow = 1) + # create a panel for each climate change scenario
   xlab("Year") +
   ylab("Relative change in annual HWIs") +
@@ -702,23 +701,23 @@ ggplot(agg_proj, aes(x = year , y = predicted_interactions)) +
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
 
 FIG <- grid.arrange(TOP, BOT, 
-                    ncol=1, heights = c(1,0.7))
+                    ncol=1, heights = c(3,2.7))
 ```
 
 ```{r }
-ggsave(temp, filename = "figures/HWI_temp.png", device = NULL,
+ggsave(temp, filename = "Figures/Supplementary Figures/HWI/HWI_temp.png", device = NULL,
        path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
-ggsave(precip, filename = "figures/HWI_precip.png", device = NULL,
+ggsave(precip, filename = "Figures/Supplementary Figures/HWI/HWI_precip.png", device = NULL,
        path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
-ggsave(TOP, filename = "figures/HWI_temp_precip.png", device = NULL,
+ggsave(TOP, filename = "Figures/Supplementary Figures/HWI/HWI_temp_precip.png", device = NULL,
        path = NULL, scale = 1, width = 14.91, height = 6.47, units = "in", dpi = 600)
 
-ggsave(BOT, filename = "figures/projections.png", device = NULL,
+ggsave(BOT, filename = "Figures/Supplementary Figures/HWI/projections.png", device = NULL,
        path = NULL, scale = 1, width = 14.91, height = 6.47, units = "in", dpi = 600)
 
-ggsave(FIG, filename = "figures/final_figure.png", device = NULL,
-       path = NULL, scale = 1, width = 14.91, height = 6.47, units = "in", dpi = 600)
+ggsave(FIG, filename = "Figures/figure5.png", device = NULL,
+       path = NULL, scale = 1, width = 14.91, height = 10, units = "in", dpi = 600)
 ```
 

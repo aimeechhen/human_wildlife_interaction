@@ -6,9 +6,6 @@ library(lubridate)       #date formats
 library(zoo)             #date format 'year-month'
 library(dplyr)           #data wrangling
 
-# Set working directory
-setwd("C:/Users/achhen/OneDrive - UBC/Github/human wildlife interaction")
-
 # Parks Canada Agency (PCA) data
 
 # Download Parks Canada Agency dataset
@@ -16,7 +13,7 @@ setwd("C:/Users/achhen/OneDrive - UBC/Github/human wildlife interaction")
 
 # Import Parks Canada dataset
 #data obtained on Feb. 3, 2023
-PCA <- read_csv("data/pca-human-wildlife-coexistence-animals-involved-detailed-records-2010-2021.csv")
+PCA <- read_csv("Data/HWI/pca-human-wildlife-coexistence-animals-involved-detailed-records-2010-2021.csv")
 
 #There is a total of 35 National Parks listed within the dataset. Our project is interested in the National Parks located within British Columbia (BC).
 #There is a total of 9 incident types assigned in the dataset. Our project is interested in the 'Human Wildlife Interaction' (HWI).
@@ -68,4 +65,4 @@ data$month <- lubridate::month(data$year_month)
 data <- relocate(data, HWI, .before = year_month)
 data <- relocate(data, park, .after = month)
 
-saveRDS(object = data, file = "RDS/data.rds")
+saveRDS(object = data, file = "Data/HWI/data.rds")

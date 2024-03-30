@@ -82,7 +82,7 @@ projected_HWI_temp <-
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(t = 0.2, r = 0.0, b = 0.2, l = 0.2), "cm"))
 projected_HWI_temp
-ggsave(projected_HWI_temp, filename = "figures/projected_HWI_temp.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(projected_HWI_temp, filename = "Figures/Supplementary Figures/HWI/projected_HWI_temp.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #.......................................................
 ## Precipitation: Figure 5b ----
@@ -153,7 +153,7 @@ projected_HWI_precip <-
         plot.margin = unit(c(t = 0.2, r = 0.1, b = 0.2, l = 0.7), "cm"))
 projected_HWI_precip
 
-ggsave(projected_HWI_precip, filename = "figures/projected_HWI_precip.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(projected_HWI_precip, filename = "Figures/Supplementary Figures/HWI/projected_HWI_precip.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #.......................................................
 ## Predicted HWI: Figure 5c-f  ----
@@ -216,7 +216,7 @@ BOT <-
         legend.box.background = element_rect(color = "black"),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
 BOT 
-ggsave(BOT, filename = "figures/BOT.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 3, units = "in", dpi = 600)
+# ggsave(BOT, filename = "figures/BOT.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 3, units = "in", dpi = 600)
 
 #..................................................
 ## Multi-panel ----
@@ -228,5 +228,5 @@ TOP <- grid.arrange(temp, precip,
 FIG5 <- grid.arrange(TOP, BOT, 
                      ncol=1, heights = c(1,0.7))
 
-ggsave(FIG5, filename = "figures/figure5.png", device = NULL, path = NULL, scale = 1, width = 14.91, height = 10.47, units = "in", dpi = 600)
+ggsave(FIG5, filename = "Figure/figure5.png", device = NULL, path = NULL, scale = 1, width = 14.91, height = 10.47, units = "in", dpi = 600)
 

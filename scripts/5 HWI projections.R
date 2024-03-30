@@ -11,7 +11,7 @@
 
 #import clean projected climate data
 #refer to "projected climate data" section within the 'elevation and climate.R' script
-projection_climate_data <- readRDS("data/ClimateNA_v731/climate data/projection_climate_data_monthly.rds")
+projection_climate_data <- readRDS("Data/HWI/Climate/projection_climate_data_monthly.rds")
 projection_climate_data <- merge(projection_climate_data, nationalparks_bc_coordinates,
                                  by = c("latitude","longitude"), all.x=TRUE)
 names(projection_climate_data)[7] <- "avgtemp"

@@ -42,7 +42,7 @@ model <- gam(HWI ~
              method = "REML",
              control = gam.control(nthreads = 8, trace = TRUE),
              knots = list(month = c(0.5, 12.5)))
-saveRDS(model, file = "RDS/model.RDS")
+saveRDS(model, file = "Data/HWI/model.RDS")
 summary(model) #deviance 65.8%
 par(mfrow = c(3,2))
 plot(model)
@@ -61,7 +61,7 @@ model2 <- gam(HWI ~
               data = data,
               method = "REML",
               control = gam.control(nthreads = 8, trace = TRUE))
-saveRDS(model2, file = "RDS/model2.RDS")
+saveRDS(model2, file = "Data/HWI/model2.RDS")
 summary(model2) #deviance 62.2%
 par(mfrow = c(3,2))
 plot(model2)

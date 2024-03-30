@@ -13,15 +13,13 @@ library(terra)        # for raster data
 library(progress)     # for elevation, get_elev_raster()
 library(ggplot2)
 
-setwd("C:/Users/achhen/OneDrive - UBC/Github/human wildlife interaction")
-
 #import a shapefile of British Columbia
 bc_shape <- st_as_sf(PROV) %>%  # convert to spatial features (sf) object
   filter(PRENAME == 'British Columbia') %>% # filter to BC only
   st_geometry() # extract boundaries only
 
 #import coordinates obtained from Google maps of the national parks
-nationalparks_bc_coordinates <- read_csv("data/ClimateNA_v731/nationalparks_bc_coordinates.csv")
+nationalparks_bc_coordinates <- read_csv("Data/HWI/ClimateNA_v731/nationalparks_bc_coordinates.csv")
 
 #convert all telemetry dataset to spatial data points
 nationalparks_location <- SpatialPoints(select(nationalparks_bc_coordinates, longitude, latitude))
@@ -52,10 +50,10 @@ nationalparks_bc_coordinates <- mutate(nationalparks_bc_coordinates,
                                        ID2 = ID1) %>%
   relocate(ID1:ID2)
 #save elevation file into 'ClimateNA_v731' folder for downloading climate data (next step)
-write.csv(nationalparks_bc_coordinates, file = 'data/ClimateNA_v731/nationalparks_bc_dem.csv', row.names = FALSE) 
+write.csv(nationalparks_bc_coordinates, file = 'Data/HWI/ClimateNA_v731/nationalparks_bc_dem.csv', row.names = FALSE) 
 
 # check the csv
-nationalparks_bc_dem <- read.csv('data/ClimateNA_v731/nationalparks_bc_dem.csv') %>%
+nationalparks_bc_dem <- read.csv('Data/HWI/ClimateNA_v731/nationalparks_bc_dem.csv') %>%
   head()
 
 ##plot coordinates for visual ----
@@ -78,11 +76,11 @@ library(climatenaR)
 for(y in 2010:2021) {
   cat('Downloading ', y, '...\n', sep = '') # to track progress
   histClimateNA(
-    file = '/data/ClimateNA_v731/nationalparks_bc_dem.csv', #elevation file, error, remove "park" column in the csv to fix
+    file = '/Data/HWI/ClimateNA_v731/nationalparks_bc_dem.csv', #elevation file, error, remove "park" column in the csv to fix
     dateR = as.character(y),
     tFrame = 'M', # monthly averages
-    exe = '/data/ClimateNA_v731/ClimateNA_v7.31.exe',
-    outdir = '/data/ClimateNA_v731/climate data/historical climate data') #create a output file where the data will be saved to within the 'ClimateNA_v731' folder
+    exe = '/Data/HWI/ClimateNA_v731/ClimateNA_v7.31.exe',
+    outdir = '/Data/HWI/ClimateNA_v731/climate data/historical climate data') #create a output file where the data will be saved to within the 'ClimateNA_v731' folder
 }
 
 ## Clean historical climate data ----
@@ -92,7 +90,7 @@ library(purrr)
 historical_climate_data <-
   # list all files, and import each of the CSVs
   map_dfr(
-    list.files('data/ClimateNA_v731/climate data/historical climate data', full.names = TRUE), #folder where the downloaded CSV of historical data is located
+    list.files('Data/HWI/ClimateNA_v731/climate data/historical climate data', full.names = TRUE), #folder where the downloaded CSV of historical data is located
     \(.fname) {
       readr::read_csv(.fname, col_types = '?') %>%
         # add a column of the file name
@@ -134,16 +132,16 @@ historical_climate_data <-
          longitude = Longitude,
          elevation = Elevation) %>%
   relocate(c(month, dec_date), .after = year)
-saveRDS(historical_climate_data, file = "data/ClimateNA_v731/climate data/historical_climate_data.rds")
+saveRDS(historical_climate_data, file = "Data/HWI/ClimateNA_v731/climate data/historical_climate_data.rds")
 
 # Projected climate data ----
 # download projected climate data
 for(y in 2022:2100) {
   cat('Downloading ', y, '...\n', sep = '') # to track progress
   projClimateNA(
-    file = '/data/ClimateNA_v731/nationalparks_bc_dem.csv', #elevation file, error, remove "park" column in the csv to fix
+    file = '/Data/HWI/ClimateNA_v731/nationalparks_bc_dem.csv', #elevation file, error, remove "park" column in the csv to fix
     tFrame = 'M', # monthly averages
-    exe = '/data/ClimateNA_v731/ClimateNA_v7.31.exe',
+    exe = '/Data/HWI/ClimateNA_v731/ClimateNA_v7.31.exe',
     scen = '8GCM', # 8GCMs_ensemble General Circulation Model
     ssp = c('S1', 'S2', 'S3', 'S5'), # Shared Socioeconomic Pathway scenarios (ie. climate change scenarios)
     years = as.character(y)) # can only extract data for two decades as a time
@@ -155,7 +153,7 @@ projection_climate_data <-
   # list all files, and import each of the CSVs
   map_dfr(
     list.files(
-      'data/ClimateNA_v731/climate data/projected climate data',  #folder where the downloaded climate projection data is located
+      'Data/HWI/ClimateNA_v731/climate data/projected climate data',  #folder where the downloaded climate projection data is located
       full.names = TRUE,
       pattern = '@'),
     \(.fname) {
@@ -213,6 +211,6 @@ projection_climate_data$scenario <- recode_factor(projection_climate_data$scenar
                                                   "8GCMs_ensemble_ssp245" = "ssp245_intermediate",
                                                   "8GCMs_ensemble_ssp370" = "ssp370_high",
                                                   "8GCMs_ensemble_ssp585" = "ssp585_veryhigh")
-saveRDS(projection_climate_data, file = "data/ClimateNA_v731/climate data/projection_climate_data_monthly.rds")
+saveRDS(projection_climate_data, file = "Data/HWI/ClimateNA_v731/climate data/projection_climate_data_monthly.rds")
 
 

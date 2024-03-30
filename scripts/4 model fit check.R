@@ -25,14 +25,11 @@ library(climatenaR)
 # Data ----
 #............................................................
 
-# Set working directory
-setwd("C:/Users/achhen/OneDrive - UBC/Github/human wildlife interaction")
-
 #import national parks data
-data <- readRDS("RDS/data.RDS")
+data <- readRDS("Data/HWI/data.RDS")
 
 #load model
-model <- readRDS("RDS/model.RDS")
+model <- readRDS("Data/HWI/model.RDS")
 
 #............................................................
 # Model Fit ----
@@ -162,7 +159,7 @@ ggplot() +
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
-ggsave(plot = last_plot(), filename = "figures/fitcheck_kootenay.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(plot = last_plot(), filename = "Figures/Supplementary Figures/HWI/model behaviour/fitcheck_kootenay.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #Revelstoke
 ggplot() +
@@ -185,7 +182,7 @@ ggplot() +
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
-ggsave(plot = last_plot(), filename = "figures/fitcheck_revelstoke.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(plot = last_plot(), filename = "Figures/Supplementary Figures/HWI/model behaviour/fitcheck_revelstoke.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #Pacific Rim
 ggplot() +
@@ -208,7 +205,7 @@ ggplot() +
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
-ggsave(plot = last_plot(), filename = "figures/fitcheck_pacific_rim.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(plot = last_plot(), filename = "Figures/Supplementary Figures/HWI/model behaviour/fitcheck_pacific_rim.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
 #Yoho
 ggplot() +
@@ -231,5 +228,5 @@ ggplot() +
         panel.background = element_rect(fill = "transparent"),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = unit(c(0.2,0.1,0.2,0.2), "cm"))
-ggsave(plot = last_plot(), filename = "figures/fitcheck_yoho.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
+ggsave(plot = last_plot(), filename = "Figures/Supplementary Figures/HWI/model behaviour/fitcheck_yoho.png", device = NULL, path = NULL, scale = 1, width = 6.86, height = 6, units = "in", dpi = 600)
 
